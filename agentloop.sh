@@ -227,7 +227,15 @@ generate_iteration_prompt() {
 
 You are an autonomous coding agent. Execute ONE task per iteration, fully and completely.
 
+**IMPORTANT:** Before starting each step, output a progress marker exactly like this so the operator can track your progress in the logs:
+
+\`\`\`
+>>> STEP N/14: [Step Name]
+\`\`\`
+
 ## STEP 1: Read Context
+
+Output: \`>>> STEP 1/14: Reading context...\`
 
 Read these files for project context:
 - \`${CONFIG_FILE}\` — Project configuration
@@ -235,6 +243,8 @@ Read these files for project context:
 - \`${AGENTS_MD}\` — Project conventions (if it exists)
 
 ## STEP 2: Search Memory (OPTIONAL — skip if it fails)
+
+Output: \`>>> STEP 2/14: Searching memory...\`
 
 Try searching for relevant past observations about this project:
 \`\`\`
@@ -248,6 +258,8 @@ If results are relevant, fetch details with \`mcp__plugin_claude-mem_mcp-search_
 **If the memory tools fail** (Chroma connection error, MCP error, etc.), skip this step and continue. Memory is optional — the loop must not stop because of claude-mem issues.
 
 ## STEP 3: Select Next Task
+
+Output: \`>>> STEP 3/14: Selecting next task...\`
 
 1. Read \`${DEVPLAN_PATH}\` to understand epics, tasks, dependencies, and acceptance criteria
 2. Use \`mcp__vibe_kanban__list_projects\` to find the project
@@ -270,11 +282,15 @@ Select the highest-ranked task.
 
 ## STEP 4: Mark Task In Progress
 
+Output: \`>>> STEP 4/14: Marking task in progress...\`
+
 Use \`mcp__vibe_kanban__update_task\` to set the selected task's status to \`inprogress\`.
 
-Output clearly: "Working on: [Task ID] - [Task Title]"
+Output clearly: \`>>> WORKING ON: [Task ID] - [Task Title]\`
 
 ## STEP 5: Gather Task Context
+
+Output: \`>>> STEP 5/14: Gathering task context...\`
 
 1. Read the **Task Details** section in \`${DEVPLAN_PATH}\` for this task's acceptance criteria
 2. Read relevant sections of \`${PRD_PATH}\` for product context
@@ -283,6 +299,8 @@ Output clearly: "Working on: [Task ID] - [Task Title]"
 
 ## STEP 6: Implement
 
+Output: \`>>> STEP 6/14: Implementing...\`
+
 - Plan your approach briefly before writing code
 - Make incremental, focused changes
 - Follow existing code patterns and conventions
@@ -290,6 +308,8 @@ Output clearly: "Working on: [Task ID] - [Task Title]"
 - Keep changes atomic and reviewable
 
 ## STEP 7: Verify Acceptance Criteria
+
+Output: \`>>> STEP 7/14: Verifying acceptance criteria...\`
 
 For EACH acceptance criterion from the Task Details:
 \`\`\`
@@ -300,12 +320,16 @@ For EACH acceptance criterion from the Task Details:
 
 ## STEP 8: Run Tests
 
+Output: \`>>> STEP 8/14: Running tests...\`
+
 Execute ALL of these test commands:
 ${test_cmds}
 
 ALL tests must pass before proceeding to commit. If tests fail, fix the issues and re-run.
 
 ## STEP 9: Commit
+
+Output: \`>>> STEP 9/14: Committing...\`
 
 Stage ONLY the files you changed (no \`git add .\`):
 \`\`\`bash
@@ -314,6 +338,8 @@ git commit -m "feat: [Task ID] - [Task Title]"
 \`\`\`
 
 ## STEP 10: Update VibeKanban
+
+Output: \`>>> STEP 10/14: Updating VibeKanban...\`
 
 1. Use \`mcp__vibe_kanban__get_task\` to read the current task description
 2. Use \`mcp__vibe_kanban__update_task\` to set the description to the original PLUS this appended:
@@ -337,6 +363,8 @@ git commit -m "feat: [Task ID] - [Task Title]"
 
 ## STEP 11: Update Progress File
 
+Output: \`>>> STEP 11/14: Updating progress file...\`
+
 APPEND (never replace) to \`${PROGRESS_FILE}\`:
 
 \`\`\`
@@ -354,6 +382,8 @@ If you discovered a REUSABLE pattern, also add it to the \`## Codebase Patterns\
 
 ## STEP 12: Save Task Memory (OPTIONAL — skip if it fails)
 
+Output: \`>>> STEP 12/14: Saving memory...\`
+
 Try to save to claude-mem. **If the tool fails, skip and continue.**
 
 Use \`mcp__plugin_claude-mem_mcp-search__save_memory\`:
@@ -362,6 +392,8 @@ Use \`mcp__plugin_claude-mem_mcp-search__save_memory\`:
 - title: "[Task ID] - [Task Title] completion"
 
 ## STEP 13: Check Epic Completion — Save Epic Memory (memory save optional)
+
+Output: \`>>> STEP 13/14: Checking epic completion...\`
 
 After marking a task done, check if ALL other tasks in the same epic are also \`done\` in VK.
 
@@ -406,6 +438,8 @@ Patterns: [list]. Gotchas: [list].
 If the epic is NOT complete yet, skip this step.
 
 ## STEP 14: Check Overall Completion
+
+Output: \`>>> STEP 14/14: Checking overall completion...\`
 
 Use \`mcp__vibe_kanban__list_tasks\` to check remaining tasks:
 - If ALL tasks are \`done\`: Output \`<promise>ALL_TASKS_COMPLETE</promise>\` and stop
