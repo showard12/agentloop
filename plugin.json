@@ -1,9 +1,63 @@
 {
   "name": "agentloop",
   "description": "Autonomous agentic developer loop — PRD to production with VibeKanban task management, hookify enforcement, and cross-session memory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "showard",
   "commands": "commands",
   "skills": "skills",
-  "agents": "agents"
+  "agents": "agents",
+  "dependencies": {
+    "plugins": {
+      "hookify@claude-plugins-official": {
+        "purpose": "Rule enforcement — blocks/warns on stop without VK update, tests, AC verification",
+        "required": true
+      },
+      "claude-mem@thedotmack": {
+        "purpose": "Cross-session semantic memory via ChromaDB vector search",
+        "required": false,
+        "note": "Loop runs without it — memory steps are skipped gracefully"
+      },
+      "superpowers@claude-plugins-official": {
+        "purpose": "Enhanced coding workflows — brainstorming, TDD, systematic debugging, code review",
+        "required": false
+      },
+      "code-review@claude-plugins-official": {
+        "purpose": "Automated code review on PRs and completed work",
+        "required": false
+      },
+      "pr-review-toolkit@claude-plugins-official": {
+        "purpose": "Specialized PR review agents — type analysis, silent failure hunting, test coverage",
+        "required": false
+      },
+      "dev-browser@dev-browser-marketplace": {
+        "purpose": "Chrome DevTools integration for visual verification of web UI",
+        "required": false
+      }
+    },
+    "mcpServers": {
+      "vibe_kanban": {
+        "package": "claude-vibekanban",
+        "purpose": "Task management — source of truth for all task statuses",
+        "required": true
+      },
+      "mobile": {
+        "package": "@mobilenext/mobile-mcp",
+        "purpose": "iOS/Android simulator and device testing via accessibility tree",
+        "required": false,
+        "note": "Only needed for mobile app projects"
+      }
+    },
+    "tools": {
+      "bun": {
+        "install": "curl -fsSL https://bun.sh/install | bash",
+        "purpose": "Required by claude-mem worker",
+        "required": false
+      },
+      "jq": {
+        "install": "brew install jq",
+        "purpose": "JSON parsing in agentloop.sh",
+        "required": true
+      }
+    }
+  }
 }

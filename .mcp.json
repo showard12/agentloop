@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "vibe_kanban": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "claude-vibekanban"]
+    },
+    "mobile": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@mobilenext/mobile-mcp@latest"]
+    }
+  }
+}

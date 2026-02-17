@@ -8,6 +8,37 @@ version: 0.1.0
 
 You are setting up a project for fully autonomous development using AgentLoop. This is an interactive onboarding process that will generate all required artifacts.
 
+## Step 0: Verify Dependencies
+
+Before starting, verify the required dependencies are available. Check each one and report status:
+
+### Required
+- **VibeKanban MCP**: Try `mcp__vibe_kanban__list_projects`. If it fails: "FAIL: VibeKanban MCP not configured. Run `./install.sh` from the agentloop plugin directory or add vibe_kanban to your MCP config."
+- **hookify plugin**: Check if hookify rules can be created in `.claude/`. If the plugin isn't active, warn but continue.
+- **jq**: Run `which jq`. If missing: "FAIL: jq required for agentloop.sh. Install with `brew install jq`."
+- **git**: Run `git status`. If not a git repo: "WARN: Not a git repo. Initialize with `git init`."
+
+### Optional (report status but don't block)
+- **claude-mem**: Try `mcp__plugin_claude-mem_mcp-search__search` with query "test", limit 1. If it fails: "WARN: claude-mem unavailable — memory features will be skipped. To fix: `cd ~/.claude/plugins/marketplaces/thedotmack && bun run worker:restart`"
+- **mobile-mcp**: Check if mobile MCP tools are available. If not: "INFO: mobile-mcp not installed. For mobile projects, run `claude mcp add mobile -- npx -y @mobilenext/mobile-mcp@latest`"
+- **dev-browser**: Check if dev-browser skills are available. If not: "INFO: dev-browser not installed. For visual web testing, install from claude-plugins-official marketplace."
+- **Docker**: Run `docker-compose version`. If missing: "INFO: Docker not found. Manual service management may be needed."
+
+Print a summary table:
+```
+Dependency Check:
+  ✓ VibeKanban MCP     — connected
+  ✓ hookify            — active
+  ✓ jq                 — v1.7
+  ✓ git                — repo initialized
+  ⚠ claude-mem         — unavailable (memory steps will be skipped)
+  ⓘ mobile-mcp         — not installed (optional)
+  ⓘ dev-browser         — not installed (optional)
+  ✓ Docker             — v24.0.7
+```
+
+If any REQUIRED dependency fails, stop and tell the user how to fix it. Otherwise continue.
+
 ## Step 1: Gather Project Information
 
 Ask the user for:
