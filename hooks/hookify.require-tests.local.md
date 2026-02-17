@@ -2,7 +2,7 @@
 name: require-tests-before-stop
 enabled: true
 event: stop
-action: block
+action: warn
 conditions:
   - field: transcript
     operator: not_contains

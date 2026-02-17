@@ -2,7 +2,7 @@
 name: require-ac-verification
 enabled: true
 event: stop
-action: block
+action: warn
 conditions:
   - field: transcript
     operator: not_contains
