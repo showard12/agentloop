@@ -322,18 +322,63 @@ APPEND (never replace) to \`${PROGRESS_FILE}\`:
 
 If you discovered a REUSABLE pattern, also add it to the \`## Codebase Patterns\` section at the TOP of the file.
 
-## STEP 12: Save Memory
+## STEP 12: Save Task Memory
 
 Use \`mcp__plugin_claude-mem_mcp-search__save_memory\`:
 - project: "${CLAUDE_MEM_PROJECT}"
 - text: Summary of what was done, key decisions, patterns discovered
 - title: "[Task ID] - [Task Title] completion"
 
-## STEP 13: Check Completion
+## STEP 13: Check Epic Completion — Save Epic Memory
+
+After marking a task done, check if ALL other tasks in the same epic are also \`done\` in VK.
+
+**How to check:** Look at the development plan's task table for the epic this task belongs to. For each task in that epic, check its VK status. If every task in the epic is now \`done\`:
+
+1. This epic is complete! Save a **comprehensive epic summary** to claude-mem:
+\`\`\`
+Use mcp__plugin_claude-mem_mcp-search__save_memory with:
+  project: "${CLAUDE_MEM_PROJECT}"
+  title: "EPIC COMPLETE: [Epic N] - [Epic Name]"
+  text: |
+    Epic [N] - [Epic Name] is fully complete.
+
+    ## Tasks Completed
+    - [ID] [Title] — [1-line summary]
+    - [ID] [Title] — [1-line summary]
+    ...
+
+    ## Architecture Decisions
+    - [Key decisions made during this epic]
+
+    ## Patterns Established
+    - [Coding patterns, conventions, utilities created]
+
+    ## Integration Points
+    - [How this epic's work connects to other epics]
+
+    ## Gotchas & Warnings
+    - [Things future work should watch out for]
+\`\`\`
+
+2. Also append to \`${PROGRESS_FILE}\`:
+\`\`\`
+## EPIC COMPLETE: [Epic N] - [Epic Name]
+All [N] tasks done. Key outcomes: [summary]
+Patterns: [list]. Gotchas: [list].
+---
+\`\`\`
+
+3. Update \`${AGENTS_MD}\` with any project-wide conventions established during this epic.
+
+If the epic is NOT complete yet, skip this step.
+
+## STEP 14: Check Overall Completion
 
 Use \`mcp__vibe_kanban__list_tasks\` to check remaining tasks:
 - If ALL tasks are \`done\`: Output \`<promise>ALL_TASKS_COMPLETE</promise>\` and stop
 - If tasks remain: End normally (the loop will spawn the next iteration)
+- If an epic just completed and the next sprint's epics aren't in the active config: mention "Sprint advancement may be needed"
 
 ## CRITICAL RULES
 

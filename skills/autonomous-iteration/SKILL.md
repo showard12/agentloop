@@ -108,11 +108,22 @@ APPEND to progress file:
 ---
 ```
 
-### Step 12: Save Memory
+### Step 12: Save Task Memory
 
 Save to claude-mem with project tag — summary of work done and patterns discovered.
 
-### Step 13: Check Completion
+### Step 13: Check Epic Completion — Save Epic Memory
+
+After marking a task done, check if ALL other tasks in the same epic are also `done` in VK.
+
+If the epic is complete:
+1. Save a **comprehensive epic summary** to claude-mem with title `"EPIC COMPLETE: [Epic N] - [Name]"` containing: all tasks completed, architecture decisions, patterns established, integration points, and gotchas
+2. Append an epic completion entry to progress.txt
+3. Update AGENTS.md with conventions established during this epic
+
+This is the most valuable memory save — it captures the big picture that individual task memories miss.
+
+### Step 14: Check Overall Completion
 
 If ALL VK tasks are `done`: output `<promise>ALL_TASKS_COMPLETE</promise>`
 Otherwise: end normally for next iteration.
