@@ -1,0 +1,11 @@
+[
+  {
+    "event": "SessionStart",
+    "hooks": [
+      {
+        "type": "prompt",
+        "prompt": "AgentLoop Plugin Active. If agentloop.config.json exists in the current directory, this project uses AgentLoop for autonomous development. Available commands: /onboard-agentloop (setup new project), /loop-start (begin autonomous execution), /loop-status (check progress), /loop-pause (graceful stop). Task status is tracked in VibeKanban (source of truth). Development plan at docs/development-plan.md."
+      }
+    ]
+  }
+]

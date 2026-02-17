@@ -1,0 +1,9 @@
+{
+  "name": "agentloop",
+  "description": "Autonomous agentic developer loop — PRD to production with VibeKanban task management, hookify enforcement, and cross-session memory",
+  "version": "0.1.0",
+  "author": "showard",
+  "commands": "commands",
+  "skills": "skills",
+  "agents": "agents"
+}

@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentLoop Configuration",
+  "description": "Per-project configuration for the AgentLoop autonomous development framework",
+  "type": "object",
+  "required": ["project_name", "testing", "loop", "paths"],
+  "properties": {
+    "project_name": {
+      "type": "string",
+      "description": "Human-readable project name"
+    },
+    "vk_project_id": {
+      "type": "string",
+      "description": "VibeKanban project ID"
+    },
+    "branch_prefix": {
+      "type": "string",
+      "default": "agentloop/",
+      "description": "Prefix for working branches"
+    },
+    "main_branch": {
+      "type": "string",
+      "default": "main",
+      "description": "Main branch to branch from"
+    },
+    "working_branch": {
+      "type": "string",
+      "description": "Current working branch for the loop"
+    },
+    "testing": {
+      "type": "object",
+      "required": ["commands"],
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shell commands to run tests"
+        },
+        "required_before_commit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether tests must pass before committing"
+        }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shell commands to set up the dev environment"
+        },
+        "verify_command": {
+          "type": "string",
+          "description": "Command to verify setup is working"
+        }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "properties": {
+        "max_iterations": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "description": "Maximum iterations before stopping"
+        },
+        "max_consecutive_failures": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "description": "Stop after this many iterations without a commit"
+        },
+        "pause_on_rate_limit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pause and retry on rate limit instead of stopping"
+        },
+        "rate_limit_pause_seconds": {
+          "type": "integer",
+          "default": 3600,
+          "minimum": 60,
+          "description": "Seconds to pause on rate limit"
+        },
+        "active_sprint": {
+          "type": "object",
+          "properties": {
+            "epics": {
+              "type": "array",
+              "items": { "type": "integer" },
+              "description": "Epic numbers in the active sprint"
+            },
+            "description": {
+              "type": "string",
+              "description": "Sprint description"
+            }
+          }
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "claude_mem_project": {
+          "type": "string",
+          "description": "Project key for claude-mem scoping"
+        },
+        "save_task_completions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save task completion summaries to claude-mem"
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "required": ["development_plan", "progress_file"],
+      "properties": {
+        "prd": {
+          "type": "string",
+          "default": "docs/prd.md"
+        },
+        "development_plan": {
+          "type": "string",
+          "default": "docs/development-plan.md"
+        },
+        "testing_instructions": {
+          "type": "string",
+          "default": "docs/testing.md"
+        },
+        "setup_instructions": {
+          "type": "string",
+          "default": "docs/setup.md"
+        },
+        "progress_file": {
+          "type": "string",
+          "default": "agentloop-progress.txt"
+        },
+        "agents_md": {
+          "type": "string",
+          "default": "AGENTS.md"
+        }
+      }
+    }
+  }
+}

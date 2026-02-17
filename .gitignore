@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# AgentLoop runtime files (these are project-specific, not plugin files)
+agentloop-progress.txt
+agentloop.config.json
+.agentloop-pause
+.agentloop-last-branch
+agentloop-archive/
+
+# Generated iteration prompts
+.claude/agentloop-iteration.md
+
+# Node
+node_modules/
