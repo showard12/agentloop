@@ -180,6 +180,8 @@ Document verification of each criterion:
 ```
 >>> STEP 8/14: Running tests...
 ```
+Use `mcp__vibe_kanban__update_task` to set the task status to `inreview`.
+
 Run ALL test commands from config. All must pass.
 
 ### STEP 9/14: Commit

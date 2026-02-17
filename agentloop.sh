@@ -322,6 +322,8 @@ For EACH acceptance criterion from the Task Details:
 
 Output: \`>>> STEP 8/14: Running tests...\`
 
+Use \`mcp__vibe_kanban__update_task\` to set the task status to \`inreview\`.
+
 Execute ALL of these test commands:
 ${test_cmds}
 
