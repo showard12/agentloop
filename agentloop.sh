@@ -234,9 +234,9 @@ Read these files for project context:
 - \`${PROGRESS_FILE}\` — Focus on the \`## Codebase Patterns\` section at the top
 - \`${AGENTS_MD}\` — Project conventions (if it exists)
 
-## STEP 2: Search Memory
+## STEP 2: Search Memory (OPTIONAL — skip if it fails)
 
-Search for relevant past observations about this project:
+Try searching for relevant past observations about this project:
 \`\`\`
 Use mcp__plugin_claude-mem_mcp-search__search with:
   query: "[project area you're about to work on]"
@@ -244,6 +244,8 @@ Use mcp__plugin_claude-mem_mcp-search__search with:
   limit: 5
 \`\`\`
 If results are relevant, fetch details with \`mcp__plugin_claude-mem_mcp-search__get_observations\`.
+
+**If the memory tools fail** (Chroma connection error, MCP error, etc.), skip this step and continue. Memory is optional — the loop must not stop because of claude-mem issues.
 
 ## STEP 3: Select Next Task
 
@@ -350,20 +352,22 @@ APPEND (never replace) to \`${PROGRESS_FILE}\`:
 
 If you discovered a REUSABLE pattern, also add it to the \`## Codebase Patterns\` section at the TOP of the file.
 
-## STEP 12: Save Task Memory
+## STEP 12: Save Task Memory (OPTIONAL — skip if it fails)
+
+Try to save to claude-mem. **If the tool fails, skip and continue.**
 
 Use \`mcp__plugin_claude-mem_mcp-search__save_memory\`:
 - project: "${CLAUDE_MEM_PROJECT}"
 - text: Summary of what was done, key decisions, patterns discovered
 - title: "[Task ID] - [Task Title] completion"
 
-## STEP 13: Check Epic Completion — Save Epic Memory
+## STEP 13: Check Epic Completion — Save Epic Memory (memory save optional)
 
 After marking a task done, check if ALL other tasks in the same epic are also \`done\` in VK.
 
 **How to check:** Look at the development plan's task table for the epic this task belongs to. For each task in that epic, check its VK status. If every task in the epic is now \`done\`:
 
-1. This epic is complete! Save a **comprehensive epic summary** to claude-mem:
+1. This epic is complete! Try to save a **comprehensive epic summary** to claude-mem (skip if tool fails):
 \`\`\`
 Use mcp__plugin_claude-mem_mcp-search__save_memory with:
   project: "${CLAUDE_MEM_PROJECT}"

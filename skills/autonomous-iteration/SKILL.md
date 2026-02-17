@@ -22,9 +22,9 @@ This skill defines the per-iteration workflow for AgentLoop. Each iteration pick
 2. Read the `## Codebase Patterns` section at the top of the progress file
 3. Read `AGENTS.md` (if it exists) for project conventions
 
-### Step 2: Search Memory
+### Step 2: Search Memory (OPTIONAL — skip if it fails)
 
-Query claude-mem for relevant past observations:
+Try querying claude-mem for relevant past observations. **If the tool fails (Chroma error, etc.), skip and continue.**
 ```
 mcp__plugin_claude-mem_mcp-search__search
   query: [area you're about to work in]
@@ -108,9 +108,9 @@ APPEND to progress file:
 ---
 ```
 
-### Step 12: Save Task Memory
+### Step 12: Save Task Memory (OPTIONAL — skip if it fails)
 
-Save to claude-mem with project tag — summary of work done and patterns discovered.
+Try saving to claude-mem with project tag — summary of work done and patterns discovered. If claude-mem is unavailable, skip and continue.
 
 ### Step 13: Check Epic Completion — Save Epic Memory
 
