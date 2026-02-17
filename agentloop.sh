@@ -397,34 +397,68 @@ PROMPT_EOF
   echo "$prompt_file"
 }
 
+# ─── Logging ─────────────────────────────────────────────────────────────────
+
+LOG_DIR="agentloop-logs"
+mkdir -p "$LOG_DIR"
+RUN_TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+RUN_LOG="$LOG_DIR/run-${RUN_TIMESTAMP}.log"
+LATEST_LOG="$LOG_DIR/latest.log"
+
+# Log function — writes to both file and stdout
+log() {
+  echo "$@" | tee -a "$RUN_LOG"
+}
+
+# Start the run log
+{
+  echo "AgentLoop Run Log"
+  echo "Started: $(date)"
+  echo "Project: $PROJECT_NAME"
+  echo "Branch: $WORKING_BRANCH"
+  echo "Config: $CONFIG_FILE"
+  echo "Max iterations: $MAX_ITERATIONS"
+  echo "Sprint epics: $ACTIVE_EPICS"
+  echo "=========================================="
+  echo ""
+} > "$RUN_LOG"
+
+# Symlink latest.log for easy access
+ln -sf "run-${RUN_TIMESTAMP}.log" "$LATEST_LOG"
+
 # ─── Main Loop ───────────────────────────────────────────────────────────────
 
 CONSECUTIVE_FAILURES=0
 TASKS_COMPLETED=0
 
-echo ""
-echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║  AgentLoop — Autonomous Agentic Developer Loop               ║"
-echo "╠═══════════════════════════════════════════════════════════════╣"
-echo "║  Project:        $PROJECT_NAME"
-echo "║  Branch:         $WORKING_BRANCH"
-echo "║  Max iterations: $MAX_ITERATIONS"
-echo "║  Sprint epics:   $ACTIVE_EPICS"
-echo "║  Config:         $CONFIG_FILE"
-echo "╚═══════════════════════════════════════════════════════════════╝"
-echo ""
+log ""
+log "╔═══════════════════════════════════════════════════════════════╗"
+log "║  AgentLoop — Autonomous Agentic Developer Loop               ║"
+log "╠═══════════════════════════════════════════════════════════════╣"
+log "║  Project:        $PROJECT_NAME"
+log "║  Branch:         $WORKING_BRANCH"
+log "║  Max iterations: $MAX_ITERATIONS"
+log "║  Sprint epics:   $ACTIVE_EPICS"
+log "║  Config:         $CONFIG_FILE"
+log "║  Log file:       $RUN_LOG"
+log "╚═══════════════════════════════════════════════════════════════╝"
+log ""
 
 for i in $(seq 1 "$MAX_ITERATIONS"); do
-  echo ""
-  echo "═══════════════════════════════════════════════════════════════"
-  echo "  Iteration $i of $MAX_ITERATIONS | Tasks completed: $TASKS_COMPLETED | Failures: $CONSECUTIVE_FAILURES"
-  echo "═══════════════════════════════════════════════════════════════"
+  log ""
+  log "═══════════════════════════════════════════════════════════════"
+  log "  Iteration $i of $MAX_ITERATIONS | Tasks completed: $TASKS_COMPLETED | Failures: $CONSECUTIVE_FAILURES"
+  log "  $(date '+%Y-%m-%d %H:%M:%S')"
+  log "═══════════════════════════════════════════════════════════════"
+
+  # Per-iteration log file
+  ITER_LOG="$LOG_DIR/iteration-$(printf '%03d' $i)-${RUN_TIMESTAMP}.log"
 
   # ── Check for pause sentinel ────────────────────────────────────────────
   if [[ -f ".agentloop-pause" ]]; then
-    echo ""
-    echo "AgentLoop PAUSED (found .agentloop-pause sentinel)"
-    echo "Remove .agentloop-pause and re-run to continue."
+    log ""
+    log "AgentLoop PAUSED (found .agentloop-pause sentinel)"
+    log "Remove .agentloop-pause and re-run to continue."
     echo "" >> "$PROGRESS_FILE"
     echo "## $(date '+%Y-%m-%d %H:%M') - PAUSED BY USER" >> "$PROGRESS_FILE"
     echo "Paused at iteration $i after $TASKS_COMPLETED tasks completed." >> "$PROGRESS_FILE"
@@ -437,18 +471,24 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   PROMPT_FILE=$(generate_iteration_prompt "$i")
 
   # ── Run Claude instance ─────────────────────────────────────────────────
-  echo "Spawning Claude instance..."
-  OUTPUT=$(claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>&1 | tee /dev/stderr) || true
+  log "Spawning Claude instance..."
+  OUTPUT=$(claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>&1 | tee -a "$ITER_LOG" | tee /dev/stderr) || true
+
+  # Append iteration summary to run log
+  {
+    echo "--- Iteration $i output ($(wc -l < "$ITER_LOG" | tr -d ' ') lines) → $ITER_LOG ---"
+    echo ""
+  } >> "$RUN_LOG"
 
   # ── Check for ALL TASKS COMPLETE ────────────────────────────────────────
   if echo "$OUTPUT" | grep -q "<promise>ALL_TASKS_COMPLETE</promise>"; then
     TASKS_COMPLETED=$((TASKS_COMPLETED + 1))
-    echo ""
-    echo "╔═══════════════════════════════════════════════════════════════╗"
-    echo "║  ALL TASKS COMPLETE!                                         ║"
-    echo "║  Finished at iteration $i                                    ║"
-    echo "║  Total tasks completed: $TASKS_COMPLETED                     ║"
-    echo "╚═══════════════════════════════════════════════════════════════╝"
+    log ""
+    log "╔═══════════════════════════════════════════════════════════════╗"
+    log "║  ALL TASKS COMPLETE!                                         ║"
+    log "║  Finished at iteration $i                                    ║"
+    log "║  Total tasks completed: $TASKS_COMPLETED                     ║"
+    log "╚═══════════════════════════════════════════════════════════════╝"
     echo "" >> "$PROGRESS_FILE"
     echo "## $(date '+%Y-%m-%d %H:%M') - ALL TASKS COMPLETE" >> "$PROGRESS_FILE"
     echo "Finished at iteration $i. Total tasks completed: $TASKS_COMPLETED" >> "$PROGRESS_FILE"
@@ -460,8 +500,8 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   # ── Check for rate limiting ─────────────────────────────────────────────
   if echo "$OUTPUT" | grep -qiE "RATE_LIMIT_DETECTED|rate.limit|429|too.many.requests|overloaded_error"; then
     if [[ "$PAUSE_ON_RATE_LIMIT" == "true" ]]; then
-      echo ""
-      echo "Rate limit detected. Pausing for ${RATE_LIMIT_PAUSE}s ($(( RATE_LIMIT_PAUSE / 60 )) minutes)..."
+      log ""
+      log "Rate limit detected. Pausing for ${RATE_LIMIT_PAUSE}s ($(( RATE_LIMIT_PAUSE / 60 )) minutes)..."
       echo "" >> "$PROGRESS_FILE"
       echo "## $(date '+%Y-%m-%d %H:%M') - RATE LIMIT PAUSE" >> "$PROGRESS_FILE"
       echo "Paused at iteration $i for ${RATE_LIMIT_PAUSE}s." >> "$PROGRESS_FILE"
@@ -476,17 +516,17 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
   if echo "$OUTPUT" | grep -qE "feat:|fix:|chore:|refactor:|test:|docs:"; then
     CONSECUTIVE_FAILURES=0
     TASKS_COMPLETED=$((TASKS_COMPLETED + 1))
-    echo "Task completed successfully. ($TASKS_COMPLETED total)"
+    log "Task completed successfully. ($TASKS_COMPLETED total)"
   else
     CONSECUTIVE_FAILURES=$((CONSECUTIVE_FAILURES + 1))
-    echo "Warning: No commit detected in iteration $i (failure $CONSECUTIVE_FAILURES of $MAX_CONSECUTIVE_FAILURES)"
+    log "Warning: No commit detected in iteration $i (failure $CONSECUTIVE_FAILURES of $MAX_CONSECUTIVE_FAILURES)"
 
     if [[ $CONSECUTIVE_FAILURES -ge $MAX_CONSECUTIVE_FAILURES ]]; then
-      echo ""
-      echo "╔═══════════════════════════════════════════════════════════════╗"
-      echo "║  STOPPED: $MAX_CONSECUTIVE_FAILURES consecutive failures     ║"
-      echo "║  Tasks completed before stopping: $TASKS_COMPLETED           ║"
-      echo "╚═══════════════════════════════════════════════════════════════╝"
+      log ""
+      log "╔═══════════════════════════════════════════════════════════════╗"
+      log "║  STOPPED: $MAX_CONSECUTIVE_FAILURES consecutive failures     ║"
+      log "║  Tasks completed before stopping: $TASKS_COMPLETED           ║"
+      log "╚═══════════════════════════════════════════════════════════════╝"
       echo "" >> "$PROGRESS_FILE"
       echo "## $(date '+%Y-%m-%d %H:%M') - STOPPED: Consecutive failures" >> "$PROGRESS_FILE"
       echo "Stopped after $CONSECUTIVE_FAILURES consecutive failures at iteration $i." >> "$PROGRESS_FILE"
@@ -497,14 +537,15 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
     fi
   fi
 
-  echo "Iteration $i complete. Sleeping 2s..."
+  log "Iteration $i complete. Sleeping 2s..."
   sleep 2
 done
 
-echo ""
-echo "AgentLoop reached max iterations ($MAX_ITERATIONS)."
-echo "Tasks completed: $TASKS_COMPLETED"
-echo "Check $PROGRESS_FILE for full status."
+log ""
+log "AgentLoop reached max iterations ($MAX_ITERATIONS)."
+log "Tasks completed: $TASKS_COMPLETED"
+log "Check $PROGRESS_FILE for full status."
+log "Full logs: $LOG_DIR/"
 echo "" >> "$PROGRESS_FILE"
 echo "## $(date '+%Y-%m-%d %H:%M') - MAX ITERATIONS REACHED" >> "$PROGRESS_FILE"
 echo "Reached $MAX_ITERATIONS iterations. Tasks completed: $TASKS_COMPLETED" >> "$PROGRESS_FILE"

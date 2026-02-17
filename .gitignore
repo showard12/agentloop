@@ -15,6 +15,7 @@ agentloop.config.json
 .agentloop-pause
 .agentloop-last-branch
 agentloop-archive/
+agentloop-logs/
 
 # Generated iteration prompts
 .claude/agentloop-iteration.md
