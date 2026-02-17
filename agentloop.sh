@@ -13,6 +13,30 @@
 
 set -e
 
+# ─── Logging (initialized early so errors are captured) ──────────────────────
+
+LOG_DIR="agentloop-logs"
+mkdir -p "$LOG_DIR"
+RUN_TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+RUN_LOG="$LOG_DIR/run-${RUN_TIMESTAMP}.log"
+LATEST_LOG="$LOG_DIR/latest.log"
+
+log() {
+  echo "$@" | tee -a "$RUN_LOG"
+}
+
+{
+  echo "AgentLoop Run Log"
+  echo "Started: $(date)"
+  echo "=========================================="
+  echo ""
+} > "$RUN_LOG"
+
+ln -sf "run-${RUN_TIMESTAMP}.log" "$LATEST_LOG"
+
+# Capture all script output to the log
+exec > >(tee -a "$RUN_LOG") 2>&1
+
 # ─── Defaults ────────────────────────────────────────────────────────────────
 
 CONFIG_FILE="agentloop.config.json"
@@ -172,10 +196,14 @@ fi
 
 # ─── Ensure Correct Branch ──────────────────────────────────────────────────
 
-CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 if [[ "$CURRENT_BRANCH" != "$WORKING_BRANCH" ]]; then
-  echo "Switching to branch: $WORKING_BRANCH"
-  git checkout "$WORKING_BRANCH" 2>/dev/null || git checkout -b "$WORKING_BRANCH" "$MAIN_BRANCH"
+  log "Switching to branch: $WORKING_BRANCH"
+  if ! git checkout "$WORKING_BRANCH" 2>/dev/null; then
+    if ! git checkout -b "$WORKING_BRANCH" "$MAIN_BRANCH" 2>/dev/null; then
+      log "Warning: Could not switch to $WORKING_BRANCH. Continuing on $CURRENT_BRANCH."
+    fi
+  fi
 fi
 
 # ─── Generate Per-Iteration Prompt ──────────────────────────────────────────
@@ -396,35 +424,6 @@ PROMPT_EOF
 
   echo "$prompt_file"
 }
-
-# ─── Logging ─────────────────────────────────────────────────────────────────
-
-LOG_DIR="agentloop-logs"
-mkdir -p "$LOG_DIR"
-RUN_TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
-RUN_LOG="$LOG_DIR/run-${RUN_TIMESTAMP}.log"
-LATEST_LOG="$LOG_DIR/latest.log"
-
-# Log function — writes to both file and stdout
-log() {
-  echo "$@" | tee -a "$RUN_LOG"
-}
-
-# Start the run log
-{
-  echo "AgentLoop Run Log"
-  echo "Started: $(date)"
-  echo "Project: $PROJECT_NAME"
-  echo "Branch: $WORKING_BRANCH"
-  echo "Config: $CONFIG_FILE"
-  echo "Max iterations: $MAX_ITERATIONS"
-  echo "Sprint epics: $ACTIVE_EPICS"
-  echo "=========================================="
-  echo ""
-} > "$RUN_LOG"
-
-# Symlink latest.log for easy access
-ln -sf "run-${RUN_TIMESTAMP}.log" "$LATEST_LOG"
 
 # ─── Main Loop ───────────────────────────────────────────────────────────────
 
